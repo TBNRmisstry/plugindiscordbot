@@ -1,0 +1,58 @@
+const Discord = require('discord.js');
+const fs = require('fs');
+
+const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES] });
+const prefix = '!';
+
+client.once('ready', () => {
+    console.log('Bot is ready!');
+});
+
+client.on('messageCreate', message => {
+    if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const command = args.shift().toLowerCase();
+
+    if (command === 'generateplugin') {
+        // Check if the user provided a plugin name
+        if (!args.length) {
+            return message.channel.send('You need to provide a plugin name!');
+        }
+
+        const pluginName = args.join(' ');
+
+        // Generate the plugin code
+        const pluginCode = generatePluginCode(pluginName);
+
+        // Save the plugin code to a file
+        fs.writeFile(`${pluginName}.java`, pluginCode, err => {
+            if (err) {
+                console.error(err);
+                return message.channel.send('An error occurred while generating the plugin!');
+            }
+
+            message.channel.send(`Plugin \`${pluginName}\` generated successfully!`);
+        });
+    }
+});
+
+// Function to generate plugin code
+function generatePluginCode(pluginName) {
+    return `import org.bukkit.plugin.java.JavaPlugin;
+
+public class ${pluginName} extends JavaPlugin {
+    @Override
+    public void onEnable() {
+        getLogger().info("${pluginName} has been enabled!");
+    }
+
+    @Override
+    public void onDisable() {
+        getLogger().info("${pluginName} has been disabled!");
+    }
+}`;
+}
+
+// Replace 'YOUR_DISCORD_BOT_TOKEN' with your actual Discord bot token
+client.login('YOUR_DISCORD_BOT_TOKEN');
